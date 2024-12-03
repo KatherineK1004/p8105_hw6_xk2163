@@ -1,0 +1,30 @@
+---
+title: "p8105_hw6_xk2163"
+author: "Kang"
+date: "2024-12-03"
+output: 
+  github_document
+---
+
+```{r message=FALSE}
+library(tidyverse)
+library(ggplot2)
+```
+
+# Problem 2
+
+```{r, warning=FALSE}
+data_df = 
+  read_csv("Data/homicide-data.csv") |> 
+  janitor::clean_names() |> 
+  mutate(city_state = paste(city,state, sep = ", "),
+         resolved = case_when(
+           disposition == "Closed by arrest" ~ 1,
+           disposition == "Closed without arrest" ~ 1,
+           disposition == "Open/No arrest" ~ 0),
+         victim_age = as.numeric(victim_age)) |> 
+  filter(!(city %in% 
+             c("Dallas", "Phoenix", "Kansas City", "Tulsa")) & 
+           (victim_race == "Black" | victim_race == "White")) 
+  
+```
