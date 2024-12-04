@@ -63,6 +63,67 @@ Then, I fit a logistic regression model to predict whether a homicide case is re
 
 These results highlight significant differences in the resolution rates of homicides based on victim characteristics, particularly victim sex and race.
 
+```{r}
+nested_data = 
+  data_df |>
+  group_by(city_state) |>
+  nest()
+
+run_logistic_model = function(data) {
+  glm(resolved ~ victim_age + victim_sex + victim_race,
+      data = data, family = binomial)}
+
+model_results = 
+  nested_data |>
+  mutate(
+    model = map(data, run_logistic_model),
+    tidied = map(model, broom::tidy)) |>
+  unnest(tidied)                                               
+
+results_sex_or = 
+  model_results |>
+  filter(term == "victim_sexMale") |>                         
+  mutate(
+    odds_ratio = exp(estimate),                                
+    conf.low = exp(estimate - 1.96 * std.error),               
+    conf.high = exp(estimate + 1.96 * std.error)) 
+
+results_sex_or |>
+  select(city_state,estimate,odds_ratio, conf.low, conf.high,p.value) |> 
+  knitr::kable(
+    caption = "Logistic Regression Results",
+    col.names = c("Location", "Estimate", "Odds Ratio",
+                  "Conf. Low", "Conf. High", "P-value"),
+    digits = 3)
+```
+
+The coefficients of the term called `victim_sexMale` in each city are shown above. To make it more clear, I also make a plot in the following step.
+
+```{r}
+results_sex_or = results_sex_or |> 
+  arrange(odds_ratio) |> 
+  mutate(city_state = factor(city_state, levels = city_state))
+
+ggplot(results_sex_or, aes(x = city_state, y = odds_ratio)) +
+  geom_point() +
+  geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.2) +
+  coord_flip() +
+  labs(
+    x = "City",
+    y = "Odds Ratio (Male vs Female)",
+    title = "Adjusted OR for Solving Homicides (Male vs Female by City)",
+    subtitle = "Odds Ratios and 95% CI for each city"
+  ) +
+  theme_minimal()+
+  theme(axis.text.y = element_text(size = 6))
+```
+
+The graph shows the adjusted odds ratios (ORs) for solving homicide cases, comparing male to female victims across various cities. An odds ratio below 1 indicates that cases involving male victims are less likely to be resolved than those involving female victims in that city, while an odds ratio above 1 would suggest the opposite.
+
+Many cities have ORs below 1, indicating that male victims' cases are less likely to be resolved compared to female victims in those locations. Some cities have wider confidence intervals, suggesting more variability or fewer cases, which makes the OR estimate less precise. In cities where the confidence interval crosses 1, there is no statistically significant difference in resolution rates between male and female victims.
+
+Overall, the plot highlights a trend across several cities where homicides involving male victims tend to be resolved at a lower rate than those involving female victims, though the extent of this disparity varies by city.
+
 # Problem 3
 
 ```{r, message=FALSE}
