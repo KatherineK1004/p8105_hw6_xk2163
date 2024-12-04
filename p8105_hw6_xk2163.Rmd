@@ -13,7 +13,7 @@ library(ggplot2)
 
 # Problem 2
 
-```{r, warning=FALSE}
+```{r,warning=FALSE,message=FALSE}
 data_df = 
   read_csv("Data/homicide-data.csv") |> 
   janitor::clean_names() |> 
@@ -63,3 +63,41 @@ Then, I fit a logistic regression model to predict whether a homicide case is re
 
 These results highlight significant differences in the resolution rates of homicides based on victim characteristics, particularly victim sex and race.
 
+# Problem 3
+
+```{r}
+data_df_2 = 
+  read_csv("Data/birthweight.csv") |> 
+  janitor::clean_names() |> 
+  mutate(
+    babysex = factor(case_when(
+      babysex == 1 ~ "Male",
+      babysex == 2 ~ "Female")),
+    
+    frace = factor(case_when(
+      frace == 1 ~ "White",
+      frace == 2 ~ "Black",
+      frace == 3 ~ "Asian",
+      frace == 4 ~ "Puerto Rican",
+      frace == 8 ~ "Other",
+      frace == 9 ~ "Unknown")),
+    
+    mrace = factor(case_when(
+      mrace == 1 ~ "White",
+      mrace == 2 ~ "Black",
+      mrace == 3 ~ "Asian",
+      mrace == 4 ~ "Puerto Rican",
+      mrace == 8 ~ "Other")),
+    
+    malform = factor(case_when(
+      malform == 0 ~ "Absent",
+      malform == 1 ~ "Present")))
+
+```
+
+For the question 3,I transformed several variables into factors with descriptive labels:
+
+- **babysex**: Converted to a factor with levels "Male" and "Female" based on numerical codes.
+- **frace**: Converted to a factor representing the father's race, with labels such as "White," "Black," "Asian," "Puerto Rican," "Other," and "Unknown."
+- **mrace**: Converted to a factor representing the mother's race, with similar race labels as for the father's race.
+- **malform**: Converted to a factor indicating the presence or absence of malformations in the baby, labeled as "Absent" and "Present."
